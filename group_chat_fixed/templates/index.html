@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Anonymous Group Chat</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1>AnonChat</h1>
+            <div class="header-actions">
+                <div class="user-badge">You are: <span>{{ username }}</span></div>
+                <a href="/logout" class="btn logout-btn">Sign Out</a>
+            </div>
+        </header>
+
+        <div class="main-content">
+            <section class="create-group">
+                <h2>Create a New Group</h2>
+                <form action="/create_group" method="POST" class="group-form">
+                    <div class="form-group">
+                        <label for="name">Group Name</label>
+                        <input type="text" id="name" name="name" required placeholder="e.g. Python Enthusiasts">
+                    </div>
+                    <div class="form-group">
+                        <label for="description">Description</label>
+                        <input type="text" id="description" name="description" placeholder="What is this group about?">
+                    </div>
+                    <div class="form-group">
+                        <label for="tags">Tags</label>
+                        <input type="text" id="tags" name="tags" placeholder="e.g. coding, python, tech">
+                    </div>
+                    <button type="submit" class="btn primary-btn">Create Group</button>
+                </form>
+            </section>
+
+            <section class="group-list">
+                <h2>Available Groups</h2>
+                {% if groups %}
+                    <div class="groups-grid">
+                        {% for group in groups %}
+                            <div class="group-card">
+                                <div class="card-header">
+                                    <h3>{{ group.name }}</h3>
+                                    {% set status = membership_map.get(group.id, 'none') %}
+                                    {% if status == 'approved' %}
+                                        <span class="badge badge-approved">Member</span>
+                                    {% elif status == 'pending' %}
+                                        <span class="badge badge-pending">Pending</span>
+                                    {% endif %}
+                                </div>
+                                <p class="desc">{{ group.description }}</p>
+                                {% if group.tags %}
+                                    <div class="tags">
+                                        {% for tag in group.tags.split(',') %}
+                                            <span class="tag">{{ tag.strip() }}</span>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                                {% set status = membership_map.get(group.id, 'none') %}
+                                {% if status == 'approved' %}
+                                    <a href="/group/{{ group.id }}" class="btn secondary-btn">Enter Group</a>
+                                {% elif status == 'pending' %}
+                                    <button class="btn secondary-btn" disabled>Request Pending</button>
+                                {% else %}
+                                    <a href="/join_group/{{ group.id }}" class="btn secondary-btn">Join Group</a>
+                                {% endif %}
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <p class="empty-state">No groups available. Be the first to create one!</p>
+                {% endif %}
+            </section>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ group.name }} - AnonChat</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="chat-container">
+        <header class="chat-header">
+            <div class="header-info">
+                <a href="/" class="back-btn">← Back to Groups</a>
+                <div class="header-title">
+                    <h2>{{ group.name }}</h2>
+                    {% if group.description %}
+                        <p class="group-desc">{{ group.description }}</p>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="user-badge">You: <span id="current-username">{{ username }}</span></div>
+        </header>
+
+        {% if is_owner and pending_requests %}
+        <div class="pending-requests-panel">
+            <div class="panel-header">
+                <h3>Pending Join Requests ({{ pending_requests|length }})</h3>
+                <button class="toggle-panel" onclick="togglePanel()">−</button>
+            </div>
+            <div class="panel-content" id="panel-content">
+                {% for membership, user in pending_requests %}
+                    <div class="request-item">
+                        <div class="request-info">
+                            <span class="request-username">{{ user.username }}</span>
+                            <span class="request-time">{{ membership.created_at.strftime('%m/%d %H:%M') }}</span>
+                        </div>
+                        <form method="POST" action="/approve_join/{{ membership.id }}" style="display: inline;">
+                            <button type="submit" class="btn approve-btn">Approve</button>
+                        </form>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        <div class="chat-messages" id="chat-messages">
+            {% if messages|length == 0 %}
+                <div class="empty-chat">
+                    <div class="empty-icon">💬</div>
+                    <p>No messages yet. Start the conversation!</p>
+                </div>
+            {% else %}
+                {% for msg in messages %}
+                    <div class="message {% if msg.username == username %}my-message{% else %}other-message{% endif %}">
+                        {% if msg.username != username %}
+                            <div class="msg-author">{{ msg.username }}</div>
+                        {% endif %}
+                        <div class="msg-bubble">
+                            {{ msg.content }}
+                        </div>
+                        <div class="msg-time">{{ msg.timestamp.strftime('%H:%M') }}</div>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        </div>
+
+        <form id="chat-form" class="chat-input-area">
+            <input type="text" id="message-input" autocomplete="off" placeholder="Type your message here..." required>
+            <button type="submit" class="btn send-btn">
+                <span class="send-icon">→</span>
+            </button>
+        </form>
+    </div>
+
+    <!-- Pass group id to javascript -->
+    <script>
+        window.GROUP_ID = {{ group.id }};
+        window.USERNAME = "{{ username }}";
+        
+        function togglePanel() {
+            const content = document.getElementById('panel-content');
+            const btn = document.querySelector('.toggle-panel');
+            content.style.display = content.style.display === 'none' ? 'block' : 'none';
+            btn.textContent = content.style.display === 'none' ? '+' : '−';
+        }
+    </script>
+    <script src="/static/script.js"></script>
+</body>
+</html>
